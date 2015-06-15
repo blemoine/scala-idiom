@@ -1,0 +1,2 @@
+Ecrire un scala idiomatique
+=====
