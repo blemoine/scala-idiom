@@ -171,6 +171,17 @@ myOption match {
 					<pre class="fragment"><code class="scala" data-trim>
 myOption.map(_.length)				
 					</code></pre>
+
+					<pre class="fragment"><code class="scala" data-trim>
+myOption match {
+	case Some(value) => Some(value.length)
+	case None => Some("une nouvelle valeur")
+}						
+					</code></pre>
+
+					<pre class="fragment"><code class="scala" data-trim>
+myOption.orElse(Some("une nouvelle valeur"))				
+					</code></pre>
 				</section>
 
 				<section>
@@ -181,19 +192,19 @@ case class User(id:Long, name:String)
 val u = User.save(User(null, "new User"))
 </code></pre>
 <pre class="fragment"><code class="scala" data-trim>
-//Better
+//Good
 case class User(id:Option[Long], name:String)
 val u = User.save(User(None, "new User"))
 </code></pre>
 <pre class="fragment"><code class="scala" data-trim>
-//Best
+//Better
 case class User(id:Long, name:String)
 case class TemporaryUser(name:String)
 
 val u = User.save(TemporaryUser("new User"))						
 					</code></pre>
 <pre class="fragment"><code class="scala" data-trim>
-//Extremist
+//Best
 case class UserId(id:Long) extends AnyVal
 case class User(id:UserId, name:String)
 					</code></pre>
@@ -226,6 +237,9 @@ Try(uneFonctionPouvantRenvoyerDesExceptions()) match {
 </code></pre>				
 			</section>
 
+			<section>
+				<h2>Either</h2>
+			</section>
 			<section>
 				<h2>Try / Either / Option</h2>
 				<ul>
@@ -473,6 +487,11 @@ forAll { (u: User) =>
     Json.parse(Json.toJson(u).toString) == u
 }
 </code></pre>				
+			</section>
+
+			<section>
+				<h2>Scalaz</h2>
+				\/, Validation, Maybe
 			</section>
 
 			<section>
