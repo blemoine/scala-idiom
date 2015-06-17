@@ -452,7 +452,7 @@ val controller = new ControllerUnderTest(mockService)
 			</section>
 
 			<section>
-				<h2>Aller plus loin... Scalacheck</h2>
+				<h2>Scalacheck</h2>
 <pre><code class="scala" data-trim>
 forAll { (a: String, b: String) =>
     (a+b).startsWith(a)
@@ -470,7 +470,7 @@ forAll { (u: User) =>
 				<ul>					
 					<li class="fragment">Un traitement asynchrone : Future[_].</li>
 					<li class="fragment">Un traitement pouvant comporter une erreur : Try[_], Either[_,_]</li>
-					<li class="fragment">Un traitement pouvant ou non renvoyer une erreur : Option[_]</li>
+					<li class="fragment">Un traitement pouvant ou non renvoyer une valeur: Option[_]</li>
 				</ul>				
 			</section>
 
