@@ -39,7 +39,7 @@
 		}
 
 		.reveal .foncObj {
-			height:160px;
+			height:240px;
 			width:100%;
 			margin-left: auto;
 			margin-right: auto;
@@ -51,7 +51,7 @@
 			position:absolute;
 			color:black;
 			height:80px;
-			line-height: 80px;
+			
 			font-size:0.8em;
 		}
 
@@ -96,8 +96,8 @@
 					<h2>Scala&nbsp;: Fonctionnel vs Objet</h2>
 
 					<div class="foncObj">
-<span class="label label-obj">Objet<br/>class, var, effet de bord...</span>
-<span class="label label-fonc">Fonctionnel<br/>case class, val, monades...</span>						
+<span class="label label-obj">Objet<br/><br/>class<br/> héritage<br/> var<br/> effet de bord...</span>
+<span class="label label-fonc">Fonctionnel<br/><br/>case class<br/> ADT<br/> val<br/> monades...</span>						
 					</div>
 					
 				</section>
@@ -122,7 +122,7 @@ def maMethod(param:Str): String = {
   }
 }						
 					</code></pre>
-					<pre><code class="scala" data-trim>
+					<pre class="fragment"><code class="scala" data-trim>
 def maMethod(param:Str): Option[String] = {
   if(param.length == 0) {
     None
@@ -140,7 +140,7 @@ val str:String = monService.methodePouvantRenvoyerNull
 
 val len = if(str != null) str.length else 0
 					</code></pre>
-					<pre><code class="scala" data-trim>
+					<pre class="fragment"><code class="scala" data-trim>
 val str:String = Option(monService.methodePouvantRenvoyerNull)
 
 val len = str.map(_.length).getOrElse(0)
@@ -168,7 +168,7 @@ myOption match {
 }						
 					</code></pre>
 
-					<pre><code class="scala" data-trim>
+					<pre class="fragment"><code class="scala" data-trim>
 myOption.map(_.length)				
 					</code></pre>
 				</section>
@@ -213,7 +213,17 @@ def numberToInt(str:String): Option[Int] = try {
 <pre class="fragment"><code class="scala" data-trim>
 def numberToInt(str:String):Option[Int] = Try(Some(str.toInt)).toOption
 </code></pre>
+			</section>
 
+			<section>
+				<h2>Récupérer d'une exception</h2>
+<pre><code class="scala" data-trim>
+Try(uneFonctionPouvantRenvoyerDesExceptions()) match {
+  case Success(v) => Right(v)
+  case Failure(e:IllegalArgumentException) => Left("IllegalArgument")
+  case Failure(NonFatal(e)) => Left(e.getMessage)
+}	
+</code></pre>				
 			</section>
 
 			<section>
@@ -278,7 +288,7 @@ val xs = 1 to 125
 val it = xs.iterator
 eventually { it.next should be (3) }
 
-//Futures - quand on reçoit la Future
+//ScalaFutures - quand on reçoit la Future
 whenReady(result) { s =>
   s should be ("hello")
 }	
@@ -293,17 +303,17 @@ var count = 0
 val words = List("une","liste","de","mots")
 
 for(w <- words) {
-	sum += w.length
-	count += 1
+  sum += w.length
+  count += 1
 }
 
-val mean = sum/count
+val mean = sum / count
 </code></pre>
 <pre class="fragment"><code class="scala" data-trim>
 //One way	
 val sum = words.map(_.length).sum
 val count = words.length
-val mean = sum/count
+val mean = sum / count
 </code></pre>		
 			</section>
 
@@ -313,7 +323,9 @@ val mean = sum/count
 <pre><code class="scala" data-trim>
 val maybeId:Option[Long] = Some(1)
 val maybeUser:Option[User] = maybeId.flatMap(User.byId)
-val maybeClassified:Option[Classified] = maybeUser.filter(_.isCustomer).flatMap(Classified.byUser)
+val maybeClassified:Option[Classified] = maybeUser
+	.filter(_.isCustomer)
+	.flatMap(Classified.byUser)
 
 </code></pre>
 <pre class="fragment"><code class="scala" data-trim>
@@ -442,17 +454,16 @@ trait MyController {
 object MyController extends Controller with MyController {
   lazy val myService = MyService
 }
-
 //Dans les tests
-class ControllerUnderTest(val myService:MyService) extends Controller with MyController
+class ControllerUnderTest(val myService:MyService) 
+    extends Controller with MyController
 
 val controller = new ControllerUnderTest(mockService)
-
 </code></pre>
 			</section>
 
 			<section>
-				<h2>Scalacheck</h2>
+				<h2>Aller plus loin... Scalacheck</h2>
 <pre><code class="scala" data-trim>
 forAll { (a: String, b: String) =>
     (a+b).startsWith(a)
@@ -470,7 +481,7 @@ forAll { (u: User) =>
 				<ul>					
 					<li class="fragment">Un traitement asynchrone : Future[_].</li>
 					<li class="fragment">Un traitement pouvant comporter une erreur : Try[_], Either[_,_]</li>
-					<li class="fragment">Un traitement pouvant ou non renvoyer une valeur: Option[_]</li>
+					<li class="fragment">Un traitement pouvant ou non renvoyer une erreur : Option[_]</li>
 				</ul>				
 			</section>
 
@@ -485,7 +496,7 @@ forAll { (u: User) =>
 			</section>
 
 			<section>
-				<h2>Questions&nbsp;?</h2>
+				<h2>Question</h2>
 			</section>
 
 			</div>
