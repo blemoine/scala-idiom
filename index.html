@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>&Eacute;crite un Scala Idiomatique</title>
+		<title>&Eacute;crire un Scala Idiomatique</title>
 
 
 		<meta name="apple-mobile-web-app-capable" content="yes" />
@@ -37,6 +37,32 @@
 		pre.small-code {
 			font-size:0.36em;
 		}
+
+		.reveal .foncObj {
+			height:160px;
+			width:100%;
+			margin-left: auto;
+			margin-right: auto;
+			background-image: linear-gradient(to right, cyan, green);
+			position:relative;			
+		}
+
+		.foncObj .label {
+			position:absolute;
+			color:black;
+			height:80px;
+			line-height: 80px;
+			font-size:0.8em;
+		}
+
+		.foncObj .label-obj {
+			text-align: left;
+			left:10px;
+		}
+		.foncObj .label-fonc {
+			text-align: right;
+			right:10px;
+		}
 		</style>
 	</head>
 
@@ -48,17 +74,419 @@
 			<div class="slides">
 				<section class="first-slide">
 					<h1>&Eacute;crire un scala idiomatique </h1>
-					<!-- LOGO -->
+					<img src="images/scala-logo.png" />
 				</section>
 
 				<section>
-				<h2>Qui suis je ?</h2>
-				<ul>
-					<li>Benoit Lemoine</li>
-					<li>Développeur fullstack chez <em>Captain Dash</em></li>
-					<li>@benoit_lemoine</li>
-				</ul>
+					<h2>Qui suis je ?</h2>
+					<ul>
+						<li>Benoit Lemoine</li>
+						<li>Développeur fullstack chez <em>Captain Dash</em></li>
+						<li>@benoit_lemoine</li>						
+					</ul>					
 				</section>
+
+				<section>
+					<h2>Idiomes</h2>
+					<blockquote>Une expression idiomatique est une expression particulière à une langue et qui n'a pas nécessairement d'équivalent littéral dans d'autres langues [...] (wikipédia)</blockquote>
+					<blockquote class="fragment">En informatique, c'est un morceau de code (un pattern) reconnu par les utilisateurs d'un langage comme étant la façon la plus commune de répondre à un problème (moi)</blockquote> 					
+				</section>
+
+				<section>
+					<h2>Scala&nbsp;: Fonctionnel vs Objet</h2>
+
+					<div class="foncObj">
+<span class="label label-obj">Objet<br/>class, var, effet de bord...</span>
+<span class="label label-fonc">Fonctionnel<br/>case class, val, monades...</span>						
+					</div>
+					
+				</section>
+
+				<section>
+					<h2><code>null</code> c'est nul</h2>
+					<blockquote>
+						I call it my billion-dollar mistake. It was the invention of the null reference in 1965
+					</blockquote>
+					<span>Sir Charles Antony Richard Hoare <br /> inventeur de quicksort... et de <code>null</code></span>
+
+				</section>
+
+				<section>
+					<h2>Fonction renvoyant <code>null</code></h2>
+					<pre><code class="scala" data-trim>
+def maMethod(param:Str): String = {
+  if(param.length == 0) {
+     null
+  } else {
+    "{" + param + "}"
+  }
+}						
+					</code></pre>
+					<pre><code class="scala" data-trim>
+def maMethod(param:Str): Option[String] = {
+  if(param.length == 0) {
+    None
+  } else {
+    Some("{" + param + "}")
+  }
+}						
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Client pouvant consommer <code>null</code></h2>
+					 <pre><code class="scala" data-trim>
+val str:String = monService.methodePouvantRenvoyerNull
+
+val len = if(str != null) str.length else 0
+					</code></pre>
+					<pre><code class="scala" data-trim>
+val str:String = Option(monService.methodePouvantRenvoyerNull)
+
+val len = str.map(_.length).getOrElse(0)
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Bannir <code>.get</code></h2>
+
+					<pre><code class="scala" data-trim>
+val myOption:Option[String] = None
+
+myOption.get //NoSuchElementException
+myOption.getOrElse("da")
+myOption.orElse( Some("test"))
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Éviter le pattern matching inutile</h2>
+					<pre><code class="scala" data-trim>
+myOption match {
+	case Some(value) => Some(value.length)
+	case None => None
+}						
+					</code></pre>
+
+					<pre><code class="scala" data-trim>
+myOption.map(_.length)				
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Exemple pratique</h2>
+					<pre><code class="scala" data-trim>
+//Very Very Bad
+case class User(id:Long, name:String)
+val u = User.save(User(null, "new User"))
+</code></pre>
+<pre class="fragment"><code class="scala" data-trim>
+//Better
+case class User(id:Option[Long], name:String)
+val u = User.save(User(None, "new User"))
+</code></pre>
+<pre class="fragment"><code class="scala" data-trim>
+//Best
+case class User(id:Long, name:String)
+case class TemporaryUser(name:String)
+
+val u = User.save(TemporaryUser("new User"))						
+					</code></pre>
+<pre class="fragment"><code class="scala" data-trim>
+//Extremist
+case class UserId(id:Long) extends AnyVal
+case class User(id:UserId, name:String)
+					</code></pre>
+				</section>
+
+
+			<section>
+				<h2>Pas d'exceptions</h2>
+<pre><code class="scala" data-trim>
+def numberToInt(str:String): Option[Int] = try {
+  Some(str.toInt)
+} catch {
+  case NumberFormatException => None
+}
+</code></pre>
+
+<pre class="fragment"><code class="scala" data-trim>
+def numberToInt(str:String):Option[Int] = Try(Some(str.toInt)).toOption
+</code></pre>
+
+			</section>
+
+			<section>
+				<h2>Try / Either / Option</h2>
+				<ul>
+					<li class="fragment">Try&nbsp;:
+						<ul>
+							<li>Essayer de ne pas le renvoyer</li>
+							<li>Si un traitement peut échouer avec une exception</li>
+						</ul>
+					</li>
+					<li class="fragment">Either&nbsp;:
+						<ul>
+							<li>Right est la valeur valide, Left l'erreur</li>
+							<li>Si un traitement peut échouer avec un message ou un objet d'erreur</li>
+							<li>Try[T] ~ Either[Throwable, T]</li>
+						</ul>
+					</li>
+					<li class="fragment">Option&nbsp;:
+						<ul>
+							<li>Si on se moque de pourquoi un traitement échoue</li>
+						</ul>
+					</li>
+				</ul>
+			</section>
+
+				<section>
+					<h2>Les futurs</h2>
+					<img src="images/delorean.jpg" height=400/>
+				</section>
+
+				<section>
+					<h2>Ne pas bloquer&nbsp;!</h2>
+<pre><code class="scala" data-trim>
+def monActionDeController(id:Long) = Action {
+  val maybeEventualUser:Future[Option[User]] = User.byId(id)
+  val maybeUser = Await.result(maybeEventualUser, 5 seconds)
+  maybeUser match {
+    case Some(user) => Ok(user)
+    case None => NotFound(s"user $id not found")
+  }
+}
+</code></pre>
+<pre class="fragment"><code class="scala" data-trim>
+def monActionDeController(id:Long) = Action.async {
+  val maybeEventualUser:Future[Option[User]] = User.byId(id)
+  maybeEventualUser.map { maybeUser =>
+    maybeUser match {
+      case Some(user) => Ok(user)
+      case None => NotFound(s"user $id not found")
+    }
+  }
+}
+</code></pre>											 
+				</section>
+
+				<section>
+					<h2>Tests - ScalaTest</h2>
+<pre><code class="scala" data-trim>
+//Eventually - quand on a pas la main sur la Future
+val xs = 1 to 125
+val it = xs.iterator
+eventually { it.next should be (3) }
+
+//Futures - quand on reçoit la Future
+whenReady(result) { s =>
+  s should be ("hello")
+}	
+</code></pre>
+				</section>
+
+				<section>
+					<h2><code>Immutabilité</code></h2>
+<pre><code class="scala" data-trim>
+var sum = 0
+var count = 0
+val words = List("une","liste","de","mots")
+
+for(w <- words) {
+	sum += w.length
+	count += 1
+}
+
+val mean = sum/count
+</code></pre>
+<pre class="fragment"><code class="scala" data-trim>
+//One way	
+val sum = words.map(_.length).sum
+val count = words.length
+val mean = sum/count
+</code></pre>		
+			</section>
+
+
+			<section>
+				<h2><code>For</code> comprehension</h2>
+<pre><code class="scala" data-trim>
+val maybeId:Option[Long] = Some(1)
+val maybeUser:Option[User] = maybeId.flatMap(User.byId)
+val maybeClassified:Option[Classified] = maybeUser.filter(_.isCustomer).flatMap(Classified.byUser)
+
+</code></pre>
+<pre class="fragment"><code class="scala" data-trim>
+val maybeClassified:Option[Classified] = for(
+   id <- maybeId;
+   user <- User.byId(id);
+   classified <- Classified.byUser(user) if user.isCustomer
+) yield classified	
+</code></pre>			
+				
+			</section>
+
+			<section>
+				<h2>Pas de <code>return</code></h2>
+				<p>Implémenté avec une exception&nbsp;!</p>
+<pre><code class="scala" data-trim>
+def contains(el:Long, l:List[Long]): Boolean = {
+  l.foreach { listElement =>
+    if(listElement == el)
+      return true
+  }
+  return false
+}
+
+</code></pre>				
+<pre class="fragment"><code class="scala" data-trim>
+// Pour la démo, fold
+def contains(el:Long, l:List[Long]): Boolean = l.foldLeft(false) { 
+  (result, listElement) => result || (listElement == el)	
+}
+
+// Pour la démo, récursion 
+def contains(el:Long, l:List[Long]): Boolean = l match {
+  case Nil => false
+  case listElement :: t = (listElement == el) || contains(el, t)
+}
+
+// Dans le vrai monde
+def contains(el:Long, l:List[Long]): Boolean = l.contains(el) 
+</code></pre>				
+
+			</section>			
+
+			<section>
+				<h2>Fonction partielle</h2>
+				avec case class, mais surtout avec paire !
+				Domaine/Codomaine
+			</section>
+
+			<section>
+				<h2>Case class</h2>
+<pre><code class="scala" data-trim>
+class Parent {
+	case class Animal(name:String)
+
+	def isDonald(a:Animal):Boolean = Animal("donald") == a
+}
+
+p.isDonald(p.Animal("donald")) // true
+p.isDonald(new Parent().Animal("donald")) // ne compile pas	
+</code></pre>				
+			</section>
+
+			<section>
+				<h2>Algebraic Data Type - enum</h2>
+<pre><code class="scala" data-trim>
+sealed trait Planet
+object Planet {	
+  case object Mercury extends Planet
+  case object Venus extends Planet
+  case object Jupiter extends Planet
+  case object Saturne extends Planet
+}
+
+import Planet._
+def isGiant(p:Planet):Boolean = p match {
+  case (Mercury | Venus) => false
+  case (Jupiter | Saturne) => true
+}
+</code></pre>				
+			</section>
+
+			<section>
+				<h2>Algebraic Data Type</h2>
+<pre><code class="scala" data-trim>
+sealed trait Permission
+object Permission {
+  case object AccessDenied extends Permission
+  case class AccessPermited(id:Long) extends Permission
+}
+
+import Permission._
+def hasAccess(p:Permission, searchedId:Long): Boolean = p match {
+  case AccessDenied => false
+  case AccessPermited(id) => id == searchedId 
+}
+
+//Attention à 
+def hasAccess(p:Permission, searchedId:Long): Boolean = p match {
+  case AccessDenied => false
+  case a:AccessPermited => a.id == searchedId 
+}
+
+</code></pre>				
+			</section>
+
+			<section>
+				<h2>Pattern matching</h2>
+				true/false 
+				récupérer la valeur avec @
+				NonFatal sur exception
+			</section>
+
+			<section>
+				<h2>Injection de dépendance</h2>
+<pre><code class="scala" data-trim>
+trait MyService
+object MyService extends MyService
+
+trait MyController {
+  this: Controller => 
+
+  def myService:MyService
+}
+
+object MyController extends Controller with MyController {
+  lazy val myService = MyService
+}
+
+//Dans les tests
+class ControllerUnderTest(val myService:MyService) extends Controller with MyController
+
+val controller = new ControllerUnderTest(mockService)
+
+</code></pre>
+			</section>
+
+			<section>
+				<h2>Aller plus loin... Scalacheck</h2>
+<pre><code class="scala" data-trim>
+forAll { (a: String, b: String) =>
+    (a+b).startsWith(a)
+}
+
+forAll { (u: User) =>
+    Json.parse(Json.toJson(u).toString) == u
+}
+</code></pre>				
+			</section>
+
+			<section>
+				<h2>Conclusion</h2>
+				<h3>Les signatures doivent expliquer ce que fait votre fonction</h3>
+				<ul>					
+					<li class="fragment">Un traitement asynchrone : Future[_].</li>
+					<li class="fragment">Un traitement pouvant comporter une erreur : Try[_], Either[_,_]</li>
+					<li class="fragment">Un traitement pouvant ou non renvoyer une erreur : Option[_]</li>
+				</ul>				
+			</section>
+
+			<section>
+				<h2>Conclusion</h2>
+				<ul>
+					<li class="">Le code doit être Thread-safe</li>
+					<li class="fragment">Il faut connaitre les API de collection au dela de <code>foreach</code>, <code>map</code> et <code>filter</code></li>
+					<li class="fragment">Si c'est illisible ; c'est probablement faux</li>					
+				</ul>
+				
+			</section>
+
+			<section>
+				<h2>Questions&nbsp;?</h2>
+			</section>
 
 			</div>
 
