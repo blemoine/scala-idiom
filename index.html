@@ -185,6 +185,23 @@ myOption.orElse(Some("une nouvelle valeur"))
 				</section>
 
 				<section>
+					<h2>Eviter les options inutiles</h2>
+				<ul>
+					<li>Option[List[T]] ~ List[T] 
+						<ul class="fragment">
+							<li><code>None</code> ~ <code>Some(Nil)</code></li>
+						</ul>
+					</li>
+					<li class="fragment">List[Option[T]] ~ List[T]
+						<ul class="fragment">
+							<li><code>maListDoption.flatten</code></li>
+						</ul>
+					</li>
+
+				</ul>	
+				</section>
+
+				<section>
 					<h2>Exemple pratique</h2>
 					<pre><code class="scala" data-trim>
 //Very Very Bad
@@ -214,7 +231,7 @@ case class User(id:UserId, name:String)
 			<section>
 				<h2>Pas d'exceptions</h2>
 <pre><code class="scala" data-trim>
-def numberToInt(str:String): Option[Int] = try {
+def strToInt(str:String): Option[Int] = try {
   Some(str.toInt)
 } catch {
   case NumberFormatException => None
@@ -222,7 +239,7 @@ def numberToInt(str:String): Option[Int] = try {
 </code></pre>
 
 <pre class="fragment"><code class="scala" data-trim>
-def numberToInt(str:String):Option[Int] = Try(Some(str.toInt)).toOption
+def strToInt(str:String):Option[Int] = Try(str.toInt).toOption
 </code></pre>
 			</section>
 
@@ -239,14 +256,31 @@ Try(uneFonctionPouvantRenvoyerDesExceptions()) match {
 
 			<section>
 				<h2>Either</h2>
+<pre><code class="scala" data-trim>
+def strToInt(str:String): Either[String, Int] = Try(str.toInt) match {
+  case Success(i) => Right(i)
+  case Failure(e) => Left(e.getMessage)
+}
+
+val maybeN1: Either[String, Int] = strToInt("a")
+val maybeN2: Either[String, Int] = strToInt("b")
+
+
+val sum: Either[String, Int] = for(
+  n1 <- maybeN1.right;
+  n2 <- maybeN2.right
+) yield (n1 + n2)
+
+</code></pre>
+				
 			</section>
 			<section>
 				<h2>Try / Either / Option</h2>
 				<ul>
 					<li class="fragment">Try&nbsp;:
-						<ul>
-							<li>Essayer de ne pas le renvoyer</li>
+						<ul>							
 							<li>Si un traitement peut échouer avec une exception</li>
+							<li>Essayer de ne pas le renvoyer</li>
 						</ul>
 					</li>
 					<li class="fragment">Either&nbsp;:
@@ -259,6 +293,7 @@ Try(uneFonctionPouvantRenvoyerDesExceptions()) match {
 					<li class="fragment">Option&nbsp;:
 						<ul>
 							<li>Si on se moque de pourquoi un traitement échoue</li>
+							<li>Ne pas utiliser si avec un <code>NullObject</code></li>
 						</ul>
 					</li>
 				</ul>
@@ -297,12 +332,12 @@ def monActionDeController(id:Long) = Action.async {
 				<section>
 					<h2>Tests - ScalaTest</h2>
 <pre><code class="scala" data-trim>
-//Eventually - quand on a pas la main sur la Future
+//trait Eventually - quand on a pas la main sur la Future
 val xs = 1 to 125
 val it = xs.iterator
 eventually { it.next should be (3) }
 
-//ScalaFutures - quand on reçoit la Future
+//trait ScalaFutures - quand on reçoit la Future
 whenReady(result) { s =>
   s should be ("hello")
 }	
@@ -324,10 +359,15 @@ for(w <- words) {
 val mean = sum / count
 </code></pre>
 <pre class="fragment"><code class="scala" data-trim>
-//One way	
 val sum = words.map(_.length).sum
 val count = words.length
 val mean = sum / count
+</code></pre>
+<pre class="fragment"><code class="scala" data-trim>
+def pairAdd(a:(Int, Int), b:(Int, Int)) = (a._1 + b._1, a._2 + b._2)
+words.map(word => (word.length, 1)).reduce(pairAdd) match {
+  case (sum, count) => sum / count
+} 
 </code></pre>		
 			</section>
 
@@ -354,7 +394,6 @@ val maybeClassified:Option[Classified] = for(
 
 			<section>
 				<h2>Pas de <code>return</code></h2>
-				<p>Implémenté avec une exception&nbsp;!</p>
 <pre><code class="scala" data-trim>
 def contains(el:Long, l:List[Long]): Boolean = {
   l.foreach { listElement =>
@@ -385,21 +424,35 @@ def contains(el:Long, l:List[Long]): Boolean = l.contains(el)
 
 			<section>
 				<h2>Fonction partielle</h2>
-				avec case class, mais surtout avec paire !
-				Domaine/Codomaine
+<pre><code class="scala" data-trim>
+val words = List("une","liste","de", "mots")
+
+words.collect {
+  case a if a.length > 3 => a.length
+}
+
+val pf:PartialFunction[String, Int] =  {
+  case a if a.length > 3 => a.length	
+}
+val f:Function[String, Option[Int]] = pf.lift 
+
+</code></pre>				
 			</section>
 
 			<section>
 				<h2>Case class</h2>
 <pre><code class="scala" data-trim>
 class Parent {
-	case class Animal(name:String)
+  case class Animal(name:String)
 
-	def isDonald(a:Animal):Boolean = Animal("donald") == a
+  def isDonald(a:Animal):Boolean = Animal("donald") == a
 }
 
-p.isDonald(p.Animal("donald")) // true
-p.isDonald(new Parent().Animal("donald")) // ne compile pas	
+val aDonald =  p.Animal("donald")
+p.isDonald(aDonald) // true
+
+val anotherDonald = new Parent().Animal("donald")
+p.isDonald(anotherDonald) // ne compile pas	
 </code></pre>				
 			</section>
 
@@ -448,9 +501,30 @@ def hasAccess(p:Permission, searchedId:Long): Boolean = p match {
 
 			<section>
 				<h2>Pattern matching</h2>
-				true/false 
-				récupérer la valeur avec @
-				NonFatal sur exception
+<pre><code class="scala" data-trim>
+val myBool:Boolean = true
+val r:String = myBool match {
+	case true => "Vrai"
+	case false => "Faux"
+}
+</code></pre>				
+
+<pre class="fragment"><code class="scala" data-trim>
+val r:String = if(myBool) "Vrai" else "Faux"
+</code></pre>
+
+<pre class="fragment"><code class="scala" data-trim>
+val myOption:Option[String] = Some("test")	
+
+myOption match {
+  case Some("une valeur spécifique") => "Some spécifique"
+  case Some(str) if str.length == 2 => "Some avec garde : " + str
+  case originalOption@Some(_) => "Some " + originalOption
+  case None => "Rien"
+  case otherCase => "An other case " + otherCase
+}
+</code></pre>
+
 			</section>
 
 			<section>
@@ -491,7 +565,18 @@ forAll { (u: User) =>
 
 			<section>
 				<h2>Scalaz</h2>
-				\/, Validation, Maybe
+				<ul>
+					<li>Either right-biased : <code>\/</code></li>
+					<li>Either avec accumulation des Left : <code>Validation</code></li>
+					<li>Option sans <code>.get</code> : Maybe</li>					
+					<li>List ne pouvant être vide : NonEmptyList</li>
+					<li>etc.</li>
+				</ul>
+				<pre class="fragment"><code class="scala" data-trim>
+//adding a tuple
+val pair:(Int, Double) = (1, 2.5) |+| (3, 4.4)
+//vaut (4, 6.9)
+				</code></pre>
 			</section>
 
 			<section>
