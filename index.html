@@ -35,7 +35,7 @@
 
 		<style>
 		pre.small-code {
-			font-size:0.36em;
+			font-size:0.46em;
 		}
 
 		.reveal .foncObj {
@@ -163,8 +163,8 @@ myOption.orElse( Some("test"))
 					<h2>Éviter le pattern matching inutile</h2>
 					<pre><code class="scala" data-trim>
 myOption match {
-	case Some(value) => Some(value.length)
-	case None => None
+  case Some(value) => Some(value.length)
+  case None => None
 }						
 					</code></pre>
 
@@ -174,8 +174,8 @@ myOption.map(_.length)
 
 					<pre class="fragment"><code class="scala" data-trim>
 myOption match {
-	case Some(value) => Some(value.length)
-	case None => Some("une nouvelle valeur")
+  case Some(value) => Some(value)
+  case None => Some("une nouvelle valeur")
 }						
 					</code></pre>
 
@@ -192,7 +192,7 @@ myOption.orElse(Some("une nouvelle valeur"))
 							<li><code>None</code> ~ <code>Some(Nil)</code></li>
 						</ul>
 					</li>
-					<li class="fragment">List[Option[T]] ~ List[T]
+					<li class="fragment">List[Option[T]] -> List[T]
 						<ul class="fragment">
 							<li><code>maListDoption.flatten</code></li>
 						</ul>
@@ -300,7 +300,7 @@ val sum: Either[String, Int] = for(
 			</section>
 
 				<section>
-					<h2>Les futurs</h2>
+					<h2>Les Futures</h2>
 					<img src="images/delorean.jpg" height=400/>
 				</section>
 
@@ -363,12 +363,6 @@ val sum = words.map(_.length).sum
 val count = words.length
 val mean = sum / count
 </code></pre>
-<pre class="fragment"><code class="scala" data-trim>
-def pairAdd(a:(Int, Int), b:(Int, Int)) = (a._1 + b._1, a._2 + b._2)
-words.map(word => (word.length, 1)).reduce(pairAdd) match {
-  case (sum, count) => sum / count
-} 
-</code></pre>		
 			</section>
 
 
@@ -378,15 +372,15 @@ words.map(word => (word.length, 1)).reduce(pairAdd) match {
 val maybeId:Option[Long] = Some(1)
 val maybeUser:Option[User] = maybeId.flatMap(User.byId)
 val maybeClassified:Option[Classified] = maybeUser
-	.filter(_.isCustomer)
-	.flatMap(Classified.byUser)
+  .filter(_.isCustomer)
+  .flatMap(Classified.byUser)
 
 </code></pre>
 <pre class="fragment"><code class="scala" data-trim>
 val maybeClassified:Option[Classified] = for(
-   id <- maybeId;
-   user <- User.byId(id);
-   classified <- Classified.byUser(user) if user.isCustomer
+  id <- maybeId;
+  user <- User.byId(id);
+  classified <- Classified.byUser(user) if user.isCustomer
 ) yield classified	
 </code></pre>			
 				
@@ -504,8 +498,8 @@ def hasAccess(p:Permission, searchedId:Long): Boolean = p match {
 <pre><code class="scala" data-trim>
 val myBool:Boolean = true
 val r:String = myBool match {
-	case true => "Vrai"
-	case false => "Faux"
+  case true => "Vrai"
+  case false => "Faux"
 }
 </code></pre>				
 
@@ -529,19 +523,29 @@ myOption match {
 
 			<section>
 				<h2>Injection de dépendance</h2>
-<pre><code class="scala" data-trim>
-trait MyService
+<pre ><code class="scala" data-trim>
+trait MyService {
+  def myMethod():String = "call to my method"
+}
 object MyService extends MyService
 
 trait MyController {
   this: Controller => 
 
   def myService:MyService
+
+  def myAction = Action { Ok(myService.myMethod())}
 }
 
 object MyController extends Controller with MyController {
   lazy val myService = MyService
 }
+</code></pre>
+			</section>
+
+			<section>
+				<h2>Injection de dépendance</h2>
+<pre ><code class="scala" data-trim>
 //Dans les tests
 class ControllerUnderTest(val myService:MyService) 
     extends Controller with MyController
@@ -551,20 +555,7 @@ val controller = new ControllerUnderTest(mockService)
 			</section>
 
 			<section>
-				<h2>Aller plus loin... Scalacheck</h2>
-<pre><code class="scala" data-trim>
-forAll { (a: String, b: String) =>
-    (a+b).startsWith(a)
-}
-
-forAll { (u: User) =>
-    Json.parse(Json.toJson(u).toString) == u
-}
-</code></pre>				
-			</section>
-
-			<section>
-				<h2>Scalaz</h2>
+				<h2>Pour aller plus loin... Scalaz</h2>
 				<ul>
 					<li>Either right-biased : <code>\/</code></li>
 					<li>Either avec accumulation des Left : <code>Validation</code></li>
@@ -572,11 +563,6 @@ forAll { (u: User) =>
 					<li>List ne pouvant être vide : NonEmptyList</li>
 					<li>etc.</li>
 				</ul>
-				<pre class="fragment"><code class="scala" data-trim>
-//adding a tuple
-val pair:(Int, Double) = (1, 2.5) |+| (3, 4.4)
-//vaut (4, 6.9)
-				</code></pre>
 			</section>
 
 			<section>
@@ -585,14 +571,13 @@ val pair:(Int, Double) = (1, 2.5) |+| (3, 4.4)
 				<ul>					
 					<li class="fragment">Un traitement asynchrone : Future[_].</li>
 					<li class="fragment">Un traitement pouvant comporter une erreur : Try[_], Either[_,_]</li>
-					<li class="fragment">Un traitement pouvant ou non renvoyer une erreur : Option[_]</li>
+					<li class="fragment">Un traitement pouvant ou non renvoyer un résultat : Option[_]</li>
 				</ul>				
 			</section>
 
 			<section>
 				<h2>Conclusion</h2>
-				<ul>
-					<li class="">Le code doit être Thread-safe</li>
+				<ul>					
 					<li class="fragment">Il faut connaitre les API de collection au dela de <code>foreach</code>, <code>map</code> et <code>filter</code></li>
 					<li class="fragment">Si c'est illisible ; c'est probablement faux</li>					
 				</ul>
@@ -600,7 +585,7 @@ val pair:(Int, Double) = (1, 2.5) |+| (3, 4.4)
 			</section>
 
 			<section>
-				<h2>Question</h2>
+				<h2>Questions&nbsp;?</h2>
 			</section>
 
 			</div>
