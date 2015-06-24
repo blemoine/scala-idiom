@@ -114,7 +114,7 @@
 				<section>
 					<h2>Fonction renvoyant <code>null</code></h2>
 					<pre><code class="scala" data-trim>
-def maMethod(param:Str): String = {
+def maMethod(param:String): String = {
   if(param.length == 0) {
      null
   } else {
@@ -141,7 +141,7 @@ val str:String = monService.methodePouvantRenvoyerNull
 val len = if(str != null) str.length else 0
 					</code></pre>
 					<pre class="fragment"><code class="scala" data-trim>
-val str:String = Option(monService.methodePouvantRenvoyerNull)
+val str:Option[String] = Option(monService.methodePouvantRenvoyerNull)
 
 val len = str.map(_.length).getOrElse(0)
 					</code></pre>
