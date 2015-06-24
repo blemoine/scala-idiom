@@ -136,7 +136,7 @@ def maMethod(param:String): Option[String] = {
 				<section>
 					<h2>Client pouvant consommer <code>null</code></h2>
 					 <pre><code class="scala" data-trim>
-val str:String = monService.methodePouvantRenvoyerNull
+val str:String = monService.methodePouvantRenvoyerNull()
 
 val len = if(str != null) str.length else 0
 					</code></pre>
@@ -247,9 +247,9 @@ def strToInt(str:String):Option[Int] = Try(str.toInt).toOption
 				<h2>Try</h2>
 <pre><code class="scala" data-trim>
 Try(uneFonctionPouvantRenvoyerDesExceptions()) match {
-  case Success(v) => Right(v)
-  case Failure(e:IllegalArgumentException) => Left("IllegalArgument")
-  case Failure(NonFatal(e)) => Left(e.getMessage)
+  case Success(v) => "my value" + v
+  case Failure(e:IllegalArgumentException) => "IllegalArgument"
+  case Failure(NonFatal(e)) => e.getMessage
 }	
 </code></pre>				
 			</section>
@@ -292,7 +292,7 @@ val sum: Either[String, Int] = for(
 					</li>
 					<li class="fragment">Option&nbsp;:
 						<ul>
-							<li>Si on se moque de pourquoi un traitement échoue</li>
+							<li>Si un traitement peut renvoyer une valeur ou non</li>
 							<li>Ne pas utiliser si avec un <code>NullObject</code></li>
 						</ul>
 					</li>
@@ -417,20 +417,20 @@ def contains(el:Long, l:List[Long]): Boolean = l.contains(el)
 			</section>			
 
 			<section>
-				<h2>Fonction partielle</h2>
+				<h2>Tuple</h2>
 <pre><code class="scala" data-trim>
-val words = List("une","liste","de", "mots")
+val tuple = (2, 4, 5)
 
-words.collect {
-  case a if a.length > 3 => a.length
+val somme = tuple._1 + tuple._2 + tuple._3
+</code></pre>
+<pre class="fragment"><code class="scala" data-trim>
+val tuple = (2, 4, 5)
+
+val somme = tuple match {
+  case (a, b, c) => a + b + c
 }
 
-val pf:PartialFunction[String, Int] =  {
-  case a if a.length > 3 => a.length	
-}
-val f:Function[String, Option[Int]] = pf.lift 
-
-</code></pre>				
+</code></pre>								
 			</section>
 
 			<section>
@@ -506,19 +506,6 @@ val r:String = myBool match {
 <pre class="fragment"><code class="scala" data-trim>
 val r:String = if(myBool) "Vrai" else "Faux"
 </code></pre>
-
-<pre class="fragment"><code class="scala" data-trim>
-val myOption:Option[String] = Some("test")	
-
-myOption match {
-  case Some("une valeur spécifique") => "Some spécifique"
-  case Some(str) if str.length == 2 => "Some avec garde : " + str
-  case originalOption@Some(_) => "Some " + originalOption
-  case None => "Rien"
-  case otherCase => "An other case " + otherCase
-}
-</code></pre>
-
 			</section>
 
 			<section>
