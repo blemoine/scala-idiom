@@ -229,7 +229,7 @@ case class User(id:UserId, name:String)
 
 
 			<section>
-				<h2>Pas d'exceptions</h2>
+				<h2>Try</h2>
 <pre><code class="scala" data-trim>
 def strToInt(str:String): Option[Int] = try {
   Some(str.toInt)
@@ -244,7 +244,7 @@ def strToInt(str:String):Option[Int] = Try(str.toInt).toOption
 			</section>
 
 			<section>
-				<h2>Récupérer d'une exception</h2>
+				<h2>Try</h2>
 <pre><code class="scala" data-trim>
 Try(uneFonctionPouvantRenvoyerDesExceptions()) match {
   case Success(v) => Right(v)
