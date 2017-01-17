@@ -319,11 +319,9 @@ def monActionDeController(id:Long) = Action {
 <pre class="fragment"><code class="scala" data-trim>
 def monActionDeController(id:Long) = Action.async {
   val maybeEventualUser:Future[Option[User]] = User.byId(id)
-  maybeEventualUser.map { maybeUser =>
-    maybeUser match {
+  maybeEventualUser.map { 
       case Some(user) => Ok(user)
       case None => NotFound(s"user $id not found")
-    }
   }
 }
 </code></pre>											 
